@@ -6,17 +6,41 @@
   <title>姓名唸讀器</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 20px;
       padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+    }
+    p {
+      text-align: center;
+      font-size: 16px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     textarea {
-      width: 100%;
+      resize:none;
+      width: 96%;
       height: 100px;
       margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
     }
     button {
-      padding: 10px 20px;
+      width: 100%;
+      padding: 10px;
       background-color: #4CAF50;
       color: white;
       border: none;
@@ -31,12 +55,15 @@
 </head>
 <body>
   <h1>姓名唸讀器</h1>
-  <p>請輸入姓名，每個姓名用換行分隔：</p>
-  <textarea id="nameList" placeholder="例如：
+  <div class="container">
+    <p>請輸入姓名，每個姓名用換行分隔</p>
+    <p>【輸入的名字串在尚未被唸到前可做更改】</p>
+    <textarea id="nameList" placeholder="例如：
 張三
 李四
 王五"></textarea>
-  <button id="nextButton">下一位</button>
+    <button id="nextButton">下一位</button>
+  </div>
 
   <script>
     const nameListInput = document.getElementById('nameList');
@@ -47,36 +74,30 @@
 
     // 按下按鈕時的事件
     nextButton.addEventListener('click', () => {
+      const updatedNames = nameListInput.value.split('\n').map(name => name.trim()).filter(name => name);
+
+      // 更新的名字清單可能與之前不同
+      if (JSON.stringify(names) !== JSON.stringify(updatedNames)) {
+        // 如果發現名字清單有更新
+        names = updatedNames;
+        // 確保當前索引仍然有效（只跳過已唸過的名字）
+        currentIndex = Math.min(currentIndex, names.length);
+      }
+
       if (names.length === 0) {
-        // 初次按下時，讀取輸入框內容並初始化姓名陣列
-        names = nameListInput.value.split('\n').map(name => name.trim()).filter(name => name);
-        currentIndex = 0;
-        if (names.length === 0) {
-          alert('請先輸入姓名！');
-          return;
-        }
+        alert('請先輸入姓名！');
+        return;
       }
 
       if (currentIndex < names.length) {
-        // 唸出當前姓名 3 次
+        // 唸出當前姓名一次
         const name = names[currentIndex];
-        let repeatCount = 0;
-
-        const speakName = () => {
-          if (repeatCount < 3) {
-            const utterance = new SpeechSynthesisUtterance(name);
-            speechSynthesis.speak(utterance);
-            repeatCount++;
-            setTimeout(speakName, 5000); // 每次間隔 5 秒
-          } else {
-            currentIndex++; // 下一位
-          }
-        };
-
-        speakName();
+        const utterance = new SpeechSynthesisUtterance(name);
+        speechSynthesis.speak(utterance);
+        currentIndex++;
       } else {
         alert('所有姓名都已經唸完了！');
-        names = []; // 重置
+        currentIndex = 0; // 重置
       }
     });
   </script>
